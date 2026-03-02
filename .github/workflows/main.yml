@@ -1,0 +1,29 @@
+name: Build Japan Recon EXE
+on: [push, workflow_dispatch]
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.8
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.8'
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install customtkinter curl_cffi pyinstaller
+
+      - name: Run PyInstaller
+        run: |
+          pyinstaller --noconfirm --onefile --windowed --name "Japan_Recon_v12" gui_main.py
+
+      - name: Upload EXE
+        uses: actions/upload-artifact@v4
+        with:
+          name: JapanRecon-Windows-EXE
+          path: dist/Japan_Recon_v12.exe
