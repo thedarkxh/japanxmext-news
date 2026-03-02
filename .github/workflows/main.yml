@@ -1,9 +1,15 @@
-name: Build Japan Recon EXE
+name: Cross-Platform Build
+
 on: [push, workflow_dispatch]
 
 jobs:
   build:
-    runs-on: windows-latest
+    strategy:
+      matrix:
+        # Build for all three major OS targets
+        os: [windows-latest, ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -18,12 +24,20 @@ jobs:
           python -m pip install --upgrade pip
           pip install customtkinter curl_cffi pyinstaller
 
-      - name: Run PyInstaller
+      - name: Build Executable
+        shell: bash
         run: |
-          pyinstaller --noconfirm --onefile --windowed --name "Japan_Recon_v12" gui_main.py
+          # Use different naming/extension based on the OS
+          if [ "${{ matrix.os }}" == "windows-latest" ]; then
+            pyinstaller --noconfirm --onefile --windowed --name "Japan_Recon_v12_Win" gui_main.py
+          elif [ "${{ matrix.os }}" == "macos-latest" ]; then
+            pyinstaller --noconfirm --onefile --windowed --name "Japan_Recon_v12_Mac" gui_main.py
+          else
+            pyinstaller --noconfirm --onefile --name "Japan_Recon_v12_Linux" gui_main.py
+          fi
 
-      - name: Upload EXE
+      - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: JapanRecon-Windows-EXE
-          path: dist/Japan_Recon_v12.exe
+          name: JapanRecon-${{ matrix.os }}
+          path: dist/*
